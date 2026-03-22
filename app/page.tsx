@@ -12,7 +12,7 @@ export default function Home() {
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent-primary">
               <span className="text-lg font-bold text-white">D</span>
             </div>
-            <span className="text-lg font-semibold text-foreground">Drishti</span>
+            <span className="text-lg font-semibold text-foreground">Almanac</span>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/login">
@@ -40,7 +40,7 @@ export default function Home() {
             <span className="text-accent-primary">drives decisions</span>
           </h1>
           <p className="text-xl text-foreground-secondary max-w-2xl mx-auto mb-10">
-            Stop drowning in data. Drishti monitors your competitors, analyzes market trends,
+            Stop drowning in data. Almanac monitors your competitors, analyzes market trends,
             and delivers actionable insights — so you can focus on building.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -216,12 +216,12 @@ export default function Home() {
         <div className="mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-accent-primary">
-              <span className="text-sm font-bold text-white">D</span>
+              <span className="text-sm font-bold text-white">A</span>
             </div>
-            <span className="text-sm text-foreground-secondary">Drishti</span>
+            <span className="text-sm text-foreground-secondary">Almanac</span>
           </div>
           <p className="text-sm text-foreground-muted">
-            © 2024 Drishti. All rights reserved.
+            © 2026 Almanac. All rights reserved.
           </p>
         </div>
       </footer>

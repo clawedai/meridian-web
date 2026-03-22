@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatRelativeTime } from "@/lib/utils";
-import { getEntities, deleteEntity } from "@/lib/api";
+import { getEntities, deleteEntity, updateEntity } from "@/lib/api";
 import type { Entity } from "@/lib/types";
 
 export default function EntitiesPage() {
@@ -42,13 +42,22 @@ export default function EntitiesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Archive this entity?")) {
+    if (confirm("Delete this entity?")) {
       try {
         await deleteEntity(id);
         loadEntities();
       } catch (err) {
-        alert("Failed to archive entity");
+        alert("Failed to delete entity");
       }
+    }
+  };
+
+  const handleArchive = async (id: string, currentlyArchived: boolean) => {
+    try {
+      await updateEntity(id, { is_archived: !currentlyArchived });
+      loadEntities();
+    } catch (err) {
+      alert("Failed to archive entity");
     }
   };
 
@@ -172,10 +181,7 @@ export default function EntitiesPage() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-foreground-secondary"
-                          onClick={() => {
-                            // TODO: Wire to toggle archive API
-                            console.log("Archive toggled for", entity.id);
-                          }}
+                          onClick={() => handleArchive(entity.id, entity.is_archived)}
                         >
                           <Archive className="h-4 w-4 mr-2" />
                           {entity.is_archived ? "Unarchive" : "Archive"}

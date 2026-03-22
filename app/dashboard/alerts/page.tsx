@@ -56,7 +56,7 @@ const mockAlerts: Alert[] = [
     alert_condition_type: "keyword",
     condition_config: { keyword: "launch", match_type: "contains" },
     channels: ["email", "webhook"],
-    webhook_url: "https://your-app.com/webhook/drishti",
+    webhook_url: "https://your-app.com/webhook/almanac",
     email_frequency: "immediate",
     is_active: true,
     last_triggered_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Rss,
@@ -15,6 +15,7 @@ import {
   Globe,
   Link as LinkIcon,
   FileText,
+  Loader2,
 } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
@@ -28,119 +29,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatRelativeTime } from "@/lib/utils";
-import type { Source } from "@/lib/types";
-
-// Mock data
-const mockSources: (Source & { entityName: string })[] = [
-  {
-    id: "1",
-    user_id: "1",
-    entity_id: "1",
-    entityName: "CompetitorX",
-    name: "Homepage",
-    source_type: "scrape",
-    url: "https://competitorx.io",
-    config: {},
-    refresh_interval_minutes: 360,
-    status: "active",
-    last_fetched_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    last_error: null,
-    fetch_count: 150,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    user_id: "1",
-    entity_id: "1",
-    entityName: "CompetitorX",
-    name: "Pricing Page",
-    source_type: "scrape",
-    url: "https://competitorx.io/pricing",
-    config: {},
-    refresh_interval_minutes: 720,
-    status: "active",
-    last_fetched_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    last_error: null,
-    fetch_count: 75,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "3",
-    user_id: "1",
-    entity_id: "1",
-    entityName: "CompetitorX",
-    name: "TechCrunch News",
-    source_type: "rss",
-    url: "https://techcrunch.com/feed/",
-    config: { keywords: ["CompetitorX"] },
-    refresh_interval_minutes: 60,
-    status: "warning",
-    last_fetched_at: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-    last_error: "RSS feed temporarily unavailable",
-    fetch_count: 432,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "4",
-    user_id: "1",
-    entity_id: "2",
-    entityName: "Acme Corp",
-    name: "News API",
-    source_type: "api",
-    url: "https://newsapi.org/v2/everything",
-    config: { api_key: "encrypted" },
-    refresh_interval_minutes: 240,
-    status: "active",
-    last_fetched_at: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-    last_error: null,
-    fetch_count: 89,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "5",
-    user_id: "1",
-    entity_id: "2",
-    entityName: "Acme Corp",
-    name: "Product Updates Blog",
-    source_type: "scrape",
-    url: "https://acme.com/blog",
-    config: {},
-    refresh_interval_minutes: 1440,
-    status: "error",
-    last_fetched_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    last_error: "Page structure changed - selectors need updating",
-    fetch_count: 45,
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: "6",
-    user_id: "1",
-    entity_id: "3",
-    entityName: "BigCo",
-    name: "LinkedIn Company",
-    source_type: "api",
-    url: null,
-    config: {},
-    refresh_interval_minutes: 1440,
-    status: "inactive",
-    last_fetched_at: null,
-    last_error: null,
-    fetch_count: 0,
-    is_active: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+import {
+  getSources,
+  refreshSource,
+  deleteSource,
+  updateSource,
+  getEntities,
+} from "@/lib/api";
+import type { Source, Entity } from "@/lib/types";
 
 const getStatusIcon = (status: string) => {
   switch (status) {
@@ -187,8 +83,94 @@ const formatInterval = (minutes: number) => {
 };
 
 export default function SourcesPage() {
-  const [sources] = useState(mockSources);
+  const [sources, setSources] = useState<Source[]>([]);
+  const [entities, setEntities] = useState<Entity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [refreshingId, setRefreshingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [sourcesData, entitiesData] = await Promise.all([
+        getSources(),
+        getEntities(false),
+      ]);
+      setSources(sourcesData);
+      setEntities(entitiesData);
+    } catch (err: any) {
+      setError(err.message || "Failed to load sources");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getEntityName = (entityId: string) => {
+    const entity = entities.find((e) => e.id === entityId);
+    return entity?.name || "Unknown";
+  };
+
+  const handleRefresh = async (id: string) => {
+    setRefreshingId(id);
+    try {
+      await refreshSource(id);
+      await loadData();
+    } catch (err) {
+      console.error("Failed to refresh source:", err);
+    } finally {
+      setRefreshingId(null);
+    }
+  };
+
+  const handleToggleActive = async (source: Source) => {
+    try {
+      await updateSource(source.id, { is_active: !source.is_active });
+      await loadData();
+    } catch (err) {
+      console.error("Failed to toggle source:", err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this source?")) return;
+    try {
+      await deleteSource(id);
+      await loadData();
+    } catch (err) {
+      console.error("Failed to delete source:", err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Header title="Data Sources" subtitle="Loading..." />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-accent-primary" />
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <Header title="Data Sources" subtitle="Error" />
+        <div className="flex-1 flex items-center justify-center">
+          <Card className="max-w-md p-8 text-center">
+            <p className="text-error mb-4">{error}</p>
+            <Button onClick={loadData}>Try Again</Button>
+          </Card>
+        </div>
+      </>
+    );
+  }
 
   const filteredSources = sources.filter((source) =>
     statusFilter === "all" ? true : source.status === statusFilter
@@ -241,10 +223,12 @@ export default function SourcesPage() {
               </Button>
             ))}
           </div>
-          <Button className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Source
-          </Button>
+          <Link href="/dashboard/sources/new">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Source
+            </Button>
+          </Link>
         </div>
 
         {/* Sources List */}
@@ -273,7 +257,7 @@ export default function SourcesPage() {
                           href={`/dashboard/entities/${source.entity_id}`}
                           className="text-sm text-accent-primary hover:underline"
                         >
-                          {source.entityName}
+                          {getEntityName(source.entity_id)}
                         </Link>
                         {source.url && (
                           <p className="text-xs text-foreground-muted truncate max-w-md mt-1">
@@ -310,12 +294,11 @@ export default function SourcesPage() {
                         variant="ghost"
                         size="icon"
                         className="flex-shrink-0"
-                        onClick={() => {
-                          // TODO: Wire to refresh source API
-                          console.log("Refreshing source", source.id);
-                        }}
+                        disabled={refreshingId === source.id}
+                        onClick={() => handleRefresh(source.id)}
+                        title="Refresh source"
                       >
-                        <RefreshCw className="h-4 w-4" />
+                        <RefreshCw className={`h-4 w-4 ${refreshingId === source.id ? "animate-spin" : ""}`} />
                       </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -324,29 +307,21 @@ export default function SourcesPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              // TODO: Wire to refresh source API
-                              console.log("Fetch Now source", source.id);
-                            }}
-                          >
+                          <DropdownMenuItem onClick={() => handleRefresh(source.id)}>
                             <RefreshCw className="h-4 w-4 mr-2" />
                             Fetch Now
                           </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/sources/${source.id}`}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => {
-                              // TODO: Wire to pause/resume source API
-                              console.log("Toggle source active", source.id);
-                            }}
-                          >
-                            {source.is_active ? "Pause" : "Resume"} Source
+                          <DropdownMenuItem onClick={() => handleToggleActive(source)}>
+                            {source.is_active ? "Pause Source" : "Resume Source"}
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-error">
+                          <DropdownMenuItem className="text-error" onClick={() => handleDelete(source.id)}>
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete
                           </DropdownMenuItem>
@@ -371,10 +346,12 @@ export default function SourcesPage() {
                 ? `No sources with status "${statusFilter}". Try a different filter.`
                 : "Add your first data source to start tracking entities."}
             </p>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Add Your First Source
-            </Button>
+            <Link href="/dashboard/sources/new">
+              <Button className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Your First Source
+              </Button>
+            </Link>
           </Card>
         )}
       </div>

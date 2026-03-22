@@ -256,7 +256,7 @@ export default function SettingsPage() {
                   <CardHeader>
                     <CardTitle>API Keys</CardTitle>
                     <CardDescription>
-                      Use API keys to access Drishti programmatically.
+                      Use API keys to access Almanac programmatically.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -281,7 +281,7 @@ export default function SettingsPage() {
                   <CardHeader>
                     <CardTitle>API Documentation</CardTitle>
                     <CardDescription>
-                      Integrate Drishti with your applications.
+                      Integrate Almanac with your applications.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

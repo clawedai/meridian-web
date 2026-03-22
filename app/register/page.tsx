@@ -44,9 +44,9 @@ export default function RegisterPage() {
           <div className="mb-8">
             <Link href="/" className="flex items-center gap-2 mb-8">
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent-primary">
-                <span className="text-lg font-bold text-white">D</span>
+                <span className="text-lg font-bold text-white">A</span>
               </div>
-              <span className="text-lg font-semibold text-foreground">Drishti</span>
+              <span className="text-lg font-semibold text-foreground">Almanac</span>
             </Link>
             <h1 className="text-2xl font-bold text-foreground">Create your account</h1>
             <p className="text-foreground-secondary mt-2">

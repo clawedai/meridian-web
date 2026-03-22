@@ -38,6 +38,12 @@ const pillarsNav = [
     badge: "P1",
   },
   {
+    name: "Anomaly Detection",
+    href: "/dashboard/pillars/anomaly",
+    icon: Zap,
+    badge: "P2",
+  },
+  {
     name: "Competitive",
     href: "/dashboard/pillars/competitive",
     icon: Target,
@@ -59,10 +65,10 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 px-4 border-b border-white/5">
         <div className="flex h-8 w-8 items-center justify-center rounded-md bg-accent-primary">
-          <span className="text-lg font-bold text-white">D</span>
+          <span className="text-lg font-bold text-white">A</span>
         </div>
         <div>
-          <span className="text-lg font-semibold text-foreground">Drishti</span>
+          <span className="text-lg font-semibold text-foreground">Almanac</span>
           <p className="text-[10px] text-gray-500 leading-tight">Intelligence</p>
         </div>
       </div>
